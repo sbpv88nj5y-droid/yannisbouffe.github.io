@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0e5e51" />
+    <title>Repas chantier</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="eyebrow"><span class="dot"></span> Suivi des frais</div>
+        <h1 id="page-title">Repas chantier</h1>
+        <p>Enregistrez votre déjeuner en quelques secondes.</p>
+        <div class="month-total" aria-live="polite">
+          <span>Ce mois-ci</span>
+          <strong id="monthTotal">0,00&nbsp;€</strong>
+          <small id="monthCount">Aucun repas ajouté</small>
+        </div>
+      </section>
+
+      <section class="panel entry-panel" aria-labelledby="entry-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Nouveau repas</p>
+            <h2 id="entry-title">Ajouter une note</h2>
+          </div>
+          <span class="date-badge" id="todayLabel"></span>
+        </div>
+
+        <form id="mealForm">
+          <div class="field-grid">
+            <label class="field price-field">
+              <span>Prix du menu</span>
+              <div class="money-input">
+                <input id="price" name="price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="12,50" required />
+                <b>€</b>
+              </div>
+            </label>
+            <label class="field">
+              <span>Date</span>
+              <input id="date" name="date" type="date" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Chantier du matin</span>
+            <input id="site" name="site" type="text" maxlength="120" autocomplete="off" placeholder="Ex. Résidence Les Tilleuls" required />
+          </label>
+
+          <div class="field">
+            <span>Ticket de caisse <em>facultatif</em></span>
+            <div class="receipt-actions">
+              <label class="camera-button" for="receiptCamera">
+                <span class="icon">⌾</span>
+                Prendre en photo
+              </label>
+              <input id="receiptCamera" type="file" accept="image/*" capture="environment" />
+              <label class="upload-button" for="receiptFile">Choisir une image</label>
+              <input id="receiptFile" type="file" accept="image/*" />
+            </div>
+            <div id="receiptPreview" class="receipt-preview" hidden>
+              <img id="previewImage" alt="Aperçu du ticket" />
+              <button id="removeReceipt" type="button" aria-label="Retirer le ticket">×</button>
+            </div>
+          </div>
+
+          <button class="save-button" type="submit"><span>+</span> Ajouter le repas</button>
+        </form>
+      </section>
+
+      <section class="panel history-panel" aria-labelledby="history-title">
+        <div class="panel-heading history-heading">
+          <div>
+            <p class="section-label">Historique</p>
+            <h2 id="history-title">Vos repas</h2>
+          </div>
+          <label class="month-picker"> 
+            <span class="sr-only">Mois à afficher</span>
+            <input id="monthFilter" type="month" />
+          </label>
+        </div>
+        <button id="allMealsButton" class="all-meals-button" type="button">☷ Afficher tous les repas</button>
+        <div id="mealList" class="meal-list" aria-live="polite"></div>
+        <div class="export-wrap">
+          <button id="exportButton" class="export-button" type="button">⇩ Exporter le mois pour LibreOffice</button>
+          <p>Un fichier CSV prêt à ouvrir dans Calc.</p>
+        </div>
+        <div class="backup-wrap">
+          <div>
+            <p class="section-label">Sauvegarde complète</p>
+            <h3>Gardez une copie de vos repas</h3>
+            <p>Le fichier contient tous vos repas et vos photos de tickets.</p>
+          </div>
+          <div class="backup-actions">
+            <button id="backupButton" class="backup-button" type="button">↓ Créer une sauvegarde</button>
+            <label class="restore-button" for="restoreFile">↑ Restaurer une sauvegarde</label>
+            <input id="restoreFile" type="file" accept="application/json,.json" />
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="mealTemplate">
+      <article class="meal-card">
+        <div class="meal-date"><strong></strong><span></span></div>
+        <div class="meal-info"><h3></h3><p></p></div>
+        <div class="meal-side"><strong></strong><button class="ticket-link" type="button" hidden>Voir ticket</button></div>
+        <button class="delete-button" type="button" title="Supprimer ce repas" aria-label="Supprimer ce repas">×</button>
+      </article>
+    </template>
+    <dialog id="ticketDialog"><button id="closeDialog" class="dialog-close" aria-label="Fermer">×</button><img id="ticketImage" alt="Ticket de caisse" /></dialog>
+    <dialog id="allMealsDialog" class="manager-dialog">
+      <button class="dialog-close" data-close="allMealsDialog" aria-label="Fermer">×</button>
+      <p class="section-label">Gestion</p>
+      <h2>Tous les repas</h2>
+      <p id="allMealsCount" class="dialog-intro"></p>
+      <div id="allMealsList" class="all-meals-list"></div>
+    </dialog>
+    <dialog id="editMealDialog" class="manager-dialog edit-dialog">
+      <button class="dialog-close" data-close="editMealDialog" aria-label="Fermer">×</button>
+      <p class="section-label">Modification</p>
+      <h2>Modifier ce repas</h2>
+      <form id="editMealForm">
+        <div class="field-grid">
+          <label class="field"><span>Prix du menu</span><div class="money-input"><input id="editPrice" type="number" min="0" step="0.01" required /><b>€</b></div></label>
+          <label class="field"><span>Date</span><input id="editDate" type="date" required /></label>
+        </div>
+        <label class="field"><span>Chantier du matin</span><input id="editSite" type="text" maxlength="120" required /></label>
+        <div class="edit-ticket-row">
+          <span id="editTicketStatus">Aucun ticket joint</span>
+          <label class="upload-button" for="editReceiptFile">Remplacer le ticket</label>
+          <input id="editReceiptFile" type="file" accept="image/*" />
+          <button id="removeEditReceipt" class="text-button" type="button" hidden>Retirer le ticket</button>
+        </div>
+        <button class="save-button" type="submit">Enregistrer les modifications</button>
+      </form>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
